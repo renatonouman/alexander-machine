@@ -14,9 +14,9 @@ const Grid = styled.div`
   height: 100vh;
 `;
 
-const Bulb = styled.div`
-  border: 1px solid ${({ lit }) => (lit ? "white" : "black")};
-  background-color: ${({ lit }) => (lit ? "black" : "white")};
+const BulbElement = styled.div`
+  border: 1px solid ${({ state }) => (state === "lit" ? "white" : "black")};
+  background-color: ${({ state }) => (state === "lit" ? "black" : "white")};
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -46,18 +46,26 @@ const bulbMachine = Machine({
         },
       },
     },
+    locked: {},
+    unlocked: {},
   },
 });
 
-function App() {
+const Bulb = () => {
   const [state, send] = useMachine(bulbMachine);
 
-  console.log(state, send);
+  const toggle = () => (Math.random() * 100 <= 50 ? send("TOGGLE") : null);
 
+  // setInterval(() => toggle(), 1000);
+
+  return <BulbElement state={state.value} />;
+};
+
+function App() {
   return (
     <Grid>
       {[...Array(100)].map(() => (
-        <Bulb lit={false} />
+        <Bulb />
       ))}
     </Grid>
   );
