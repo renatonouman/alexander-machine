@@ -11,98 +11,26 @@ const BulbElement = styled.div`
   border-radius: 50%;
   display: inline-flex;
 `;
-const bulbMachine = Machine(
-  {
-    id: "bulb",
-    initial: "connected",
-    context: {
-      retries: 0,
+const bulbMachine = Machine({
+  id: "bulb",
+  initial: "unlit",
+  states: {
+    lit: {
+      on: {
+        TOGGLE: {
+          target: "unlit",
+        },
+      },
     },
-    states: {
-      connected: {
-        initial: "unlit",
-        context: {
-          locked: false,
-        },
-        on: {
-          SWITCH: {
-            target: "unilateral",
-            actions: ["unlock"],
-          },
-        },
-        states: {
-          lit: {
-            type: "final",
-          },
-          unlit: {
-            on: {
-              TOGGLE: {
-                target: "lit",
-              },
-            },
-          },
-        },
-      },
-      unilateral: {
-        initial: "unlit",
-        on: {
-          SWITCH: {
-            target: "random",
-            actions: ["unlock"],
-          },
-        },
-        states: {
-          lit: {
-            type: "final",
-          },
-          unlit: {
-            on: {
-              TOGGLE: {
-                target: "lit",
-              },
-            },
-          },
-        },
-      },
-      random: {
-        initial: "unlit",
-        on: {
-          SWITCH: {
-            target: "connected",
-            actions: ["unlock"],
-          },
-        },
-        states: {
-          lit: {
-            on: {
-              TOGGLE: {
-                target: "unlit",
-                cond: "isUnlocked",
-              },
-            },
-          },
-          unlit: {
-            on: {
-              TOGGLE: {
-                target: "lit",
-                cond: "isUnlocked",
-              },
-            },
-          },
+    unlit: {
+      on: {
+        TOGGLE: {
+          target: "lit",
         },
       },
     },
   },
-  {
-    actions: {
-      lock: (context) => (context.locked = true),
-      unlock: (context) => (context.locked = false),
-    },
-    guards: {
-      isUnlocked: (context) => !context.locked,
-    },
-  }
-);
+});
 
 const Bulb = (props) => {
   const [state, send] = useMachine(bulbMachine);
@@ -112,51 +40,49 @@ const Bulb = (props) => {
     return sibling && sibling.dataset.state;
   };
 
-  const toggle = React.useCallback(() => {
-    return Math.random() * 100 <= 50 ? send("TOGGLE") : null;
+  const initialToggle = React.useCallback(() => {
+    Math.random() * 100 <= 10 && send("TOGGLE");
   }, [send]);
 
-  React.useEffect(() => {
-    const siblings = {
-      up: getSibling(props.id, -11),
-      right: getSibling(props.id, 1),
-      down: getSibling(props.id, 11),
-      left: getSibling(props.id, -1),
-    };
+  const toggle = React.useCallback(
+    (id) => {
+      const chance = Math.random() * 100 <= 50;
 
-    if (!Object.keys(state.value).includes(props.scenario)) {
-      send("SWITCH");
-    }
+      const siblings = {
+        up: getSibling(id, -11),
+        right: getSibling(id, 1),
+        down: getSibling(id, 11),
+        left: getSibling(id, -1),
+      };
 
-    if (props.scenario === "connected") {
-      toggle();
+      const RANDOM_CHANCE = props.scenario === "random" && chance;
+      const DISCONNECTED_CHANCE =
+        props.scenario === "disconnected" && state.value !== "lit" && chance;
+      const CONNECTED_CHANCE =
+        props.scenario === "connected" &&
+        Object.values(siblings).includes("lit") &&
+        chance;
 
-      if (Object.values(siblings).includes("lit")) {
-        setInterval(() => toggle(), 10);
+      if (RANDOM_CHANCE) {
+        send("TOGGLE");
+      } else if (DISCONNECTED_CHANCE) {
+        send("TOGGLE");
+      } else if (CONNECTED_CHANCE) {
+        send("TOGGLE");
       }
-    }
+    },
+    [props.scenario, send, state.value]
+  );
 
-    if (props.scenario === "unilateral") {
-      setInterval(() => toggle(), 1000);
-    }
-  }, [
-    props.id,
-    props.scenario,
-    send,
-    state,
-    state.initial,
-    state.value,
-    toggle,
-  ]);
+  React.useLayoutEffect(() => {
+    initialToggle();
+    const interval = setInterval(() => toggle(props.id), 1000);
 
-  console.log(props.scenario, state.value);
+    return () => clearInterval(interval);
+  }, [initialToggle, props.id, props.scenario, send, state.value, toggle]);
 
   return (
-    <BulbElement
-      id={props.id}
-      data-state={state.value[props.scenario]}
-      state={state.value[props.scenario]}
-    />
+    <BulbElement id={props.id} data-state={state.value} state={state.value} />
   );
 };
 
