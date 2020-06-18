@@ -37,6 +37,9 @@ const bulbMachine = Machine(
                 target: "unlit",
                 cond: "isUnlocked",
               },
+              LOCK: {
+                actions: "lock",
+              },
             },
           },
           unlit: {
@@ -44,6 +47,9 @@ const bulbMachine = Machine(
               TOGGLE: {
                 target: "lit",
                 cond: "isUnlocked",
+              },
+              LOCK: {
+                actions: "lock",
               },
             },
           },
@@ -126,6 +132,10 @@ const Bulb = (props) => {
     return sibling && sibling.dataset.state;
   };
 
+  const toggle = React.useCallback(() =>
+    Math.random() * 100 <= 50 ? send("TOGGLE") : null
+  );
+
   React.useEffect(() => {
     const siblings = {
       up: getSibling(props.id, -11),
@@ -133,22 +143,24 @@ const Bulb = (props) => {
       down: getSibling(props.id, 11),
       left: getSibling(props.id, -1),
     };
-    console.log(siblings);
-  }, [props.id, state.value]);
 
-  const toggle = React.useCallback(() =>
-    Math.random() * 100 <= 50 ? send("TOGGLE") : null
-  );
-
-  React.useEffect(() => {
     if (!Object.keys(state.value).includes(props.scenario)) {
       send("SWITCH");
+    }
+
+    if (Object.keys(state.value).includes("connected")) {
+      setInterval(() => toggle(), 5000);
+      if (Object.values(siblings).includes("lit")) {
+        console.log("frango");
+      } else {
+        send("LOCK");
+      }
     }
 
     if (props.scenario === "random") {
       setInterval(() => toggle(), 1000);
     }
-  }, [props.scenario, send, state.value, toggle]);
+  }, [props.id, props.scenario, send, state.value, toggle]);
 
   console.log(props.scenario, state.value);
   return (
