@@ -20,7 +20,7 @@ const bulbMachine = Machine(
     },
     states: {
       connected: {
-        initial: "lit",
+        initial: "unlit",
         context: {
           locked: false,
         },
@@ -32,31 +32,19 @@ const bulbMachine = Machine(
         },
         states: {
           lit: {
-            on: {
-              TOGGLE: {
-                target: "unlit",
-                cond: "isUnlocked",
-              },
-              LOCK: {
-                actions: "lock",
-              },
-            },
+            type: "final",
           },
           unlit: {
             on: {
               TOGGLE: {
                 target: "lit",
-                cond: "isUnlocked",
-              },
-              LOCK: {
-                actions: "lock",
               },
             },
           },
         },
       },
       unilateral: {
-        initial: "lit",
+        initial: "unlit",
         on: {
           SWITCH: {
             target: "random",
@@ -65,26 +53,19 @@ const bulbMachine = Machine(
         },
         states: {
           lit: {
-            on: {
-              TOGGLE: {
-                target: "unlit",
-                actions: ["lock"],
-                cond: "isUnlocked",
-              },
-            },
+            type: "final",
           },
           unlit: {
             on: {
               TOGGLE: {
                 target: "lit",
-                cond: "isUnlocked",
               },
             },
           },
         },
       },
       random: {
-        initial: "lit",
+        initial: "unlit",
         on: {
           SWITCH: {
             target: "connected",
@@ -126,15 +107,14 @@ const bulbMachine = Machine(
 const Bulb = (props) => {
   const [state, send] = useMachine(bulbMachine);
 
-  console.log(state.value);
   const getSibling = (id, magicNum) => {
     const sibling = document.getElementById((id + magicNum).toString());
     return sibling && sibling.dataset.state;
   };
 
-  const toggle = React.useCallback(() =>
-    Math.random() * 100 <= 50 ? send("TOGGLE") : null
-  );
+  const toggle = React.useCallback(() => {
+    return Math.random() * 100 <= 50 ? send("TOGGLE") : null;
+  }, [send]);
 
   React.useEffect(() => {
     const siblings = {
@@ -148,21 +128,29 @@ const Bulb = (props) => {
       send("SWITCH");
     }
 
-    if (Object.keys(state.value).includes("connected")) {
-      setInterval(() => toggle(), 5000);
+    if (props.scenario === "connected") {
+      toggle();
+
       if (Object.values(siblings).includes("lit")) {
-        console.log("frango");
-      } else {
-        send("LOCK");
+        setInterval(() => toggle(), 10);
       }
     }
 
-    if (props.scenario === "random") {
+    if (props.scenario === "unilateral") {
       setInterval(() => toggle(), 1000);
     }
-  }, [props.id, props.scenario, send, state.value, toggle]);
+  }, [
+    props.id,
+    props.scenario,
+    send,
+    state,
+    state.initial,
+    state.value,
+    toggle,
+  ]);
 
   console.log(props.scenario, state.value);
+
   return (
     <BulbElement
       id={props.id}
