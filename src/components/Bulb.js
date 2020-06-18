@@ -40,14 +40,31 @@ const bulbMachine = Machine({
   },
 });
 
-const Bulb = () => {
+const Bulb = (props) => {
   const [state, send] = useMachine(bulbMachine);
 
-  const toggle = () => (Math.random() * 100 <= 50 ? send("TOGGLE") : null);
+  const getSibling = (id, magicNum) => {
+    const sibling = document.getElementById((id + magicNum).toString());
+    return sibling && sibling.dataset.state;
+  };
+
+  React.useEffect(() => {
+    const siblings = {
+      up: getSibling(props.id, -11),
+      right: getSibling(props.id, 1),
+      down: getSibling(props.id, 11),
+      left: getSibling(props.id, -1),
+    };
+    console.log(siblings);
+  }, [props.id, state.value]);
+
+  // const toggle = () => (Math.random() * 100 <= 50 ? send("TOGGLE") : null);
 
   // setInterval(() => toggle(), 1000);
 
-  return <BulbElement state={state.value} />;
+  return (
+    <BulbElement id={props.id} data-state={state.value} state={state.value} />
+  );
 };
 
 export default Bulb;
