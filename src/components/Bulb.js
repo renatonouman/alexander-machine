@@ -14,35 +14,93 @@ const BulbElement = styled.div`
 
 const bulbMachine = Machine({
   id: "bulb",
-  initial: "lit",
+  initial: "unilateral",
   context: {
-    lock: false,
+    retries: 0,
   },
   states: {
-    lit: {
+    connected: {
+      initial: "lit",
+      context: {
+        locked: false,
+      },
       on: {
-        TOGGLE: {
-          target: "unlit",
-          cond: (context) => !context.lock,
+        SWITCH: "unilateral",
+      },
+      states: {
+        lit: {
+          on: {
+            TOGGLE: {
+              target: "unlit",
+              cond: (context) => !context.locked,
+            },
+          },
+        },
+        unlit: {
+          on: {
+            TOGGLE: {
+              target: "lit",
+              cond: (context) => !context.locked,
+            },
+          },
         },
       },
     },
-    unlit: {
+    unilateral: {
+      initial: "lit",
       on: {
-        TOGGLE: {
-          target: "lit",
-          cond: (context) => !context.lock,
+        SWITCH: "random",
+      },
+      states: {
+        lit: {
+          on: {
+            TOGGLE: {
+              target: "unlit",
+              cond: (context) => !context.locked,
+            },
+          },
+        },
+        unlit: {
+          on: {
+            TOGGLE: {
+              target: "lit",
+              cond: (context) => !context.locked,
+            },
+          },
         },
       },
     },
-    locked: {},
-    unlocked: {},
+    random: {
+      initial: "lit",
+      on: {
+        SWITCH: "connected",
+      },
+      states: {
+        lit: {
+          on: {
+            TOGGLE: {
+              target: "unlit",
+              cond: (context) => !context.locked,
+            },
+          },
+        },
+        unlit: {
+          on: {
+            TOGGLE: {
+              target: "lit",
+              cond: (context) => !context.locked,
+            },
+          },
+        },
+      },
+    },
   },
 });
 
 const Bulb = (props) => {
   const [state, send] = useMachine(bulbMachine);
 
+  console.log(state.value);
   const getSibling = (id, magicNum) => {
     const sibling = document.getElementById((id + magicNum).toString());
     return sibling && sibling.dataset.state;
@@ -58,12 +116,21 @@ const Bulb = (props) => {
     console.log(siblings);
   }, [props.id, state.value]);
 
+  React.useEffect(() => {
+    console.log("Changed scenario");
+    bulbMachine.transition(props.scenario, "SWITCH");
+  }, [props.scenario]);
+
   // const toggle = () => (Math.random() * 100 <= 50 ? send("TOGGLE") : null);
 
   // setInterval(() => toggle(), 1000);
 
   return (
-    <BulbElement id={props.id} data-state={state.value} state={state.value} />
+    <BulbElement
+      id={props.id}
+      data-state={state.value}
+      state={state.value[props.scenario]}
+    />
   );
 };
 
