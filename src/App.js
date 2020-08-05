@@ -1,4 +1,6 @@
 import React from "react";
+import { useMachine } from "@xstate/react";
+import { Machine } from "xstate";
 
 import { Bulb, Button, Container, Grid } from "./components";
 
@@ -29,26 +31,49 @@ import { Bulb, Button, Container, Grid } from "./components";
 // 100 lightbulbs
 //
 
-const line = (lineIndex) =>
-  [...Array(10)].reduce((line, _, index) => {
-    line.push({
-      id: `${lineIndex}${index}`,
-      coordinates: [lineIndex, index],
-      state: null,
-    });
-    return line;
-  }, []);
-
-const grid = [...Array(10)].reduce((grid, _, index) => {
-  grid.push(line(index));
-  return grid;
-}, []);
-
-console.log(grid);
+// const bulbMachine = Machine({
+//   id: "bulb",
+//   initial: "flow",
+//   states: {
+//     flow: {
+//       on: {
+//         TOGGLE: {
+//           target: "equilibrium",
+//         },
+//       },
+//     },
+//     equilibrium: {
+//       type: "final",
+//     },
+//   },
+// });
 
 const App = () => {
   const [scenario, setScenario] = React.useState("connected");
+  //  const [state, send] = useMachine(bulbMachine);
 
+  const line = (lineIndex) =>
+    [...Array(10)].reduce((line, _, index) => {
+      line.push({
+        coordinates: [lineIndex, index],
+        state: Math.random() * 100 <= 10 ? "on" : "off",
+        siblings: {
+          up: [lineIndex - 1, index],
+          right: [lineIndex, index + 1],
+          bottom: [lineIndex + 1, index],
+          left: [lineIndex, index - 1],
+        },
+      });
+      return line;
+    }, []);
+
+  const grid = [...Array(10)].reduce((grid, _, index) => {
+    grid.push(line(index));
+    return grid;
+  }, []);
+
+  console.log(grid);
+  console.log(grid[grid[3][6].siblings.up[0]][grid[3][6].siblings.up[1]]);
   return (
     <Container>
       <Button.Container>

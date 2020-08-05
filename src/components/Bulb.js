@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
-import { useMachine } from "@xstate/react";
-import { Machine } from "xstate";
+// import { useMachine } from "@xstate/react";
+// import { Machine } from "xstate";
 
 const BulbElement = styled.div`
   border: 1px solid ${({ state }) => (state === "on" ? "white" : "black")};
@@ -35,7 +35,7 @@ const BulbElement = styled.div`
 const Bulb = (props) => {
   //  const [state, send] = useMachine(bulbMachine);
 
-  console.log(props);
+  console.log(props.coordinates);
 
   //  const getSibling = (id, magicNum) => {
   //    const sibling = document.getElementById((id + magicNum).toString());
