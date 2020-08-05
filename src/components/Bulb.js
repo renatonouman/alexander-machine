@@ -35,8 +35,6 @@ const BulbElement = styled.div`
 const Bulb = (props) => {
   //  const [state, send] = useMachine(bulbMachine);
 
-  console.log(props.coordinates);
-
   //  const getSibling = (id, magicNum) => {
   //    const sibling = document.getElementById((id + magicNum).toString());
   //    return sibling && sibling.dataset.state;

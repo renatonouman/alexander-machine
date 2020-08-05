@@ -49,34 +49,64 @@ import { Bulb, Button, Container, Grid } from "./components";
 // });
 
 const App = () => {
-  const [scenario, setScenario] = React.useState("connected");
+  const [dataGrid, setDataGrid] = React.useState([]);
+  // const [scenario, setScenario] = React.useState("connected");
   //  const [state, send] = useMachine(bulbMachine);
 
-  const line = (lineIndex) =>
-    [...Array(10)].reduce((line, _, index) => {
-      line.push({
-        coordinates: [lineIndex, index],
-        state: Math.random() * 100 <= 10 ? "on" : "off",
-        siblings: {
-          up: [lineIndex - 1, index],
-          right: [lineIndex, index + 1],
-          bottom: [lineIndex + 1, index],
-          left: [lineIndex, index - 1],
-        },
-      });
-      return line;
-    }, []);
+  // Write logic to randomize state
+  // Determine logic to find siblings
 
-  const grid = [...Array(10)].reduce((grid, _, index) => {
-    grid.push(line(index));
-    return grid;
+  // const line = (lineIndex) =>
+  //   [...Array(10)].reduce((line, _, index) => {
+  //     line.push({
+  //       coordinates: [lineIndex, index],
+  //       state: Math.random() * 100 <= 10 ? "on" : "off",
+  //       // siblings: {
+  //       //   up: [lineIndex - 1, index],
+  //       //   right: [lineIndex, index + 1],
+  //       //   bottom: [lineIndex + 1, index],
+  //       //   left: [lineIndex, index - 1],
+  //       // },
+  //     });
+  //     return line;
+  //   }, []);
+  //
+
+  React.useEffect(() => {
+    const ARR_INIT = [...Array(10)];
+    const BULB_DATA = { coordinates: [], state: null, key: "" };
+
+    const gridDataReducer = (grid, _, rowIndex) => {
+      return grid.concat(
+        ARR_INIT.map((_, itemIndex) => {
+          return Object.assign({}, BULB_DATA, {
+            key: `${rowIndex}${itemIndex}`,
+            coordinates: [rowIndex, itemIndex],
+          });
+        })
+      );
+    };
+
+    const flatGrid = ARR_INIT.reduce(gridDataReducer, []);
+
+    const bulbToggler = () =>
+      flatGrid.reduce((acc, value) => {
+        return acc.concat({
+          ...value,
+          state: Math.random() * 100 <= 10 ? "on" : "off",
+        });
+      }, []);
+
+    setDataGrid(bulbToggler());
+
+    const toggleInterval = setInterval(() => setDataGrid(bulbToggler()), 1000);
+    return () => clearInterval(toggleInterval);
   }, []);
 
-  console.log(grid);
-  console.log(grid[grid[3][6].siblings.up[0]][grid[3][6].siblings.up[1]]);
+  // console.log(grid[grid[3][6].siblings.up[0]][grid[3][6].siblings.up[1]]);
   return (
     <Container>
-      <Button.Container>
+      {/* <Button.Container>
         <Button
           type="button"
           onClick={() => setScenario("connected")}
@@ -98,8 +128,12 @@ const App = () => {
         >
           Random
         </Button>
-      </Button.Container>
-      <Grid>{grid.map((line) => line.map((bulb) => <Bulb {...bulb} />))}</Grid>
+      </Button.Container> */}
+      <Grid>
+        {dataGrid.map((bulb) => (
+          <Bulb {...bulb} />
+        ))}
+      </Grid>
     </Container>
   );
 };
