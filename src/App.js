@@ -42,33 +42,50 @@ const initialState = [...Array(10)].reduce((grid, _, rowIndex, array) => {
     array.map((_, itemIndex) => ({
       coordinates: [rowIndex, itemIndex],
       key: `${rowIndex}${itemIndex}`,
+      siblings: {
+        up: [rowIndex - 1, itemIndex],
+        right: [rowIndex, itemIndex + 1],
+        bottom: [rowIndex + 1, itemIndex],
+        left: [rowIndex, itemIndex - 1],
+      },
       state: Math.random() * 100 <= 50 ? "on" : "off",
     }))
   );
 }, []);
 
-function bulbToggler(prevState, scenario) {
-  console.log(prevState);
-  if (scenario === "connected") {
-    return null;
+function bulbToggler(prevState, scenario, array) {
+  const hasSiblingOff = Boolean(
+    (array[(prevState.siblings.up[0], prevState.siblings.up[1])] &&
+      array[(prevState.siblings.up[0], prevState.siblings.up[1])].state) ===
+      "on" ||
+      (array[(prevState.siblings.right[0], prevState.siblings.right[1])] &&
+        array[(prevState.siblings.right[0], prevState.siblings.right[1])]
+          .state) === "on" ||
+      (array[(prevState.siblings.bottom[0], prevState.siblings.bottom[1])] &&
+        array[(prevState.siblings.bottom[0], prevState.siblings.bottom[1])]
+          .state) === "on" ||
+      (array[(prevState.siblings.left[0], prevState.siblings.left[1])] &&
+        array[(prevState.siblings.left[0], prevState.siblings.left[1])]
+          .state) === "on"
+  );
+  if (scenario === "connected" && hasSiblingOff) {
+    return Math.random() * 100 <= 50 ? "on" : "off";
   }
-  if (scenario === "disconnected") {
-    if (prevState === "on") {
-      return prevState;
-    }
+  if (scenario === "disconnected" && prevState.state !== "on") {
     return Math.random() * 100 <= 50 ? "on" : "off";
   }
   if (scenario === "random") {
     return Math.random() * 100 <= 50 ? "on" : "off";
   }
+  return prevState.state;
 }
 
 function reducer(state, action) {
   if (action.type === "toggle") {
-    return state.reduce((newState, value) => {
+    return state.reduce((newState, value, _, array) => {
       return newState.concat({
         ...value,
-        state: bulbToggler(value.state, action.scenario),
+        state: bulbToggler(value, action.scenario, array),
       });
     }, []);
   }
@@ -79,6 +96,7 @@ const App = () => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const [scenario, setScenario] = React.useState("connected");
 
+  // console.log(state);
   React.useEffect(() => {
     const toggleInterval = setInterval(() => {
       dispatch({ type: "toggle", scenario: scenario });
@@ -89,6 +107,12 @@ const App = () => {
   return (
     <Container>
       <Button.Container>
+        <button
+          type="button"
+          onClick={() => dispatch({ type: "toggle", scenario: "disconnected" })}
+        >
+          Dispatch
+        </button>
         <Button
           type="button"
           onClick={() => setScenario("connected")}
