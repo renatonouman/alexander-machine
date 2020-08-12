@@ -1,6 +1,6 @@
 import React from "react";
-import { useMachine } from "@xstate/react";
-import { Machine } from "xstate";
+// import { useMachine } from "@xstate/react";
+// import { Machine } from "xstate";
 
 import { Bulb, Button, Container, Grid } from "./components";
 
@@ -30,83 +30,66 @@ import { Bulb, Button, Container, Grid } from "./components";
 
 // 100 lightbulbs
 //
+//       // siblings: {
+//       //   up: [lineIndex - 1, index],
+//       //   right: [lineIndex, index + 1],
+//       //   bottom: [lineIndex + 1, index],
+//       //   left: [lineIndex, index - 1],
+//       // },
 
-// const bulbMachine = Machine({
-//   id: "bulb",
-//   initial: "flow",
-//   states: {
-//     flow: {
-//       on: {
-//         TOGGLE: {
-//           target: "equilibrium",
-//         },
-//       },
-//     },
-//     equilibrium: {
-//       type: "final",
-//     },
-//   },
-// });
+const initialState = [...Array(10)].reduce((grid, _, rowIndex, array) => {
+  return grid.concat(
+    array.map((_, itemIndex) => ({
+      coordinates: [rowIndex, itemIndex],
+      key: `${rowIndex}${itemIndex}`,
+      state: Math.random() * 100 <= 50 ? "on" : "off",
+    }))
+  );
+}, []);
+
+function bulbToggler(prevState, scenario) {
+  if (scenario === "connected") {
+    return null;
+  }
+  if (scenario === "disconnected") {
+    return prevState === "off"
+      ? Math.random() * 100 <= 50
+        ? "on"
+        : "off"
+      : "off";
+  }
+  if (scenario === "random") {
+    return Math.random() * 100 <= 50 ? "on" : "off";
+  }
+}
+
+function reducer(state, action) {
+  if (action.type === "toggle") {
+    return state.reduce((newState, value) => {
+      return newState.concat({
+        ...value,
+        state: bulbToggler(state, action.scenario),
+      });
+    }, []);
+  }
+  return state;
+}
 
 const App = () => {
-  const [dataGrid, setDataGrid] = React.useState([]);
-  // const [scenario, setScenario] = React.useState("connected");
-  //  const [state, send] = useMachine(bulbMachine);
-
-  // Write logic to randomize state
-  // Determine logic to find siblings
-
-  // const line = (lineIndex) =>
-  //   [...Array(10)].reduce((line, _, index) => {
-  //     line.push({
-  //       coordinates: [lineIndex, index],
-  //       state: Math.random() * 100 <= 10 ? "on" : "off",
-  //       // siblings: {
-  //       //   up: [lineIndex - 1, index],
-  //       //   right: [lineIndex, index + 1],
-  //       //   bottom: [lineIndex + 1, index],
-  //       //   left: [lineIndex, index - 1],
-  //       // },
-  //     });
-  //     return line;
-  //   }, []);
-  //
+  const [state, dispatch] = React.useReducer(reducer, initialState);
+  const [scenario, setScenario] = React.useState("connected");
 
   React.useEffect(() => {
-    const ARR_INIT = [...Array(10)];
-    const BULB_DATA = { coordinates: [], state: null, key: "" };
-
-    const gridDataReducer = (grid, _, rowIndex) => {
-      return grid.concat(
-        ARR_INIT.map((_, itemIndex) => {
-          return Object.assign({}, BULB_DATA, {
-            key: `${rowIndex}${itemIndex}`,
-            coordinates: [rowIndex, itemIndex],
-          });
-        })
-      );
-    };
-
-    const flatGrid = ARR_INIT.reduce(gridDataReducer, []);
-
-    const bulbToggler = () =>
-      flatGrid.reduce((acc, value) => {
-        return acc.concat({
-          ...value,
-          state: Math.random() * 100 <= 10 ? "on" : "off",
-        });
-      }, []);
-
-    setDataGrid(bulbToggler());
-
-    const toggleInterval = setInterval(() => setDataGrid(bulbToggler()), 1000);
+    const toggleInterval = setInterval(
+      () => dispatch({ type: "toggle", scenario: scenario }),
+      1000
+    );
     return () => clearInterval(toggleInterval);
-  }, []);
+  }, [scenario]);
 
-  // console.log(grid[grid[3][6].siblings.up[0]][grid[3][6].siblings.up[1]]);
   return (
     <Container>
-      {/* <Button.Container>
+      <Button.Container>
         <Button
           type="button"
           onClick={() => setScenario("connected")}
@@ -128,9 +111,9 @@ const App = () => {
         >
           Random
         </Button>
-      </Button.Container> */}
+      </Button.Container>
       <Grid>
-        {dataGrid.map((bulb) => (
+        {state.map((bulb) => (
           <Bulb {...bulb} />
         ))}
       </Grid>
