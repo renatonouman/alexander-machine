@@ -48,15 +48,15 @@ const initialState = [...Array(10)].reduce((grid, _, rowIndex, array) => {
 }, []);
 
 function bulbToggler(prevState, scenario) {
+  console.log(prevState);
   if (scenario === "connected") {
     return null;
   }
   if (scenario === "disconnected") {
-    return prevState === "off"
-      ? Math.random() * 100 <= 50
-        ? "on"
-        : "off"
-      : "off";
+    if (prevState === "on") {
+      return prevState;
+    }
+    return Math.random() * 100 <= 50 ? "on" : "off";
   }
   if (scenario === "random") {
     return Math.random() * 100 <= 50 ? "on" : "off";
@@ -68,7 +68,7 @@ function reducer(state, action) {
     return state.reduce((newState, value) => {
       return newState.concat({
         ...value,
-        state: bulbToggler(state, action.scenario),
+        state: bulbToggler(value.state, action.scenario),
       });
     }, []);
   }
@@ -80,10 +80,9 @@ const App = () => {
   const [scenario, setScenario] = React.useState("connected");
 
   React.useEffect(() => {
-    const toggleInterval = setInterval(
-      () => dispatch({ type: "toggle", scenario: scenario }),
-      1000
-    );
+    const toggleInterval = setInterval(() => {
+      dispatch({ type: "toggle", scenario: scenario });
+    }, 1000);
     return () => clearInterval(toggleInterval);
   }, [scenario]);
 
