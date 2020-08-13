@@ -54,21 +54,20 @@ const initialState = [...Array(10)].reduce((grid, _, rowIndex, array) => {
 }, []);
 
 function bulbToggler(prevState, scenario, array) {
-  const hasSiblingOff = Boolean(
-    (array[(prevState.siblings.up[0], prevState.siblings.up[1])] &&
-      array[(prevState.siblings.up[0], prevState.siblings.up[1])].state) ===
-      "on" ||
-      (array[(prevState.siblings.right[0], prevState.siblings.right[1])] &&
-        array[(prevState.siblings.right[0], prevState.siblings.right[1])]
-          .state) === "on" ||
-      (array[(prevState.siblings.bottom[0], prevState.siblings.bottom[1])] &&
-        array[(prevState.siblings.bottom[0], prevState.siblings.bottom[1])]
-          .state) === "on" ||
-      (array[(prevState.siblings.left[0], prevState.siblings.left[1])] &&
-        array[(prevState.siblings.left[0], prevState.siblings.left[1])]
-          .state) === "on"
+  const findSiblingStates = (direction) => {
+    const siblCoordinates =
+      (prevState.siblings[direction][0], prevState.siblings[direction][1]);
+    return array[siblCoordinates] && array[siblCoordinates].state;
+  };
+
+  const hasSiblingOn = Boolean(
+    findSiblingStates("up") === "on" ||
+      findSiblingStates("right") === "on" ||
+      findSiblingStates("bottom") === "on" ||
+      findSiblingStates("left") === "on"
   );
-  if (scenario === "connected" && hasSiblingOff) {
+
+  if (scenario === "connected" && hasSiblingOn) {
     return Math.random() * 100 <= 50 ? "on" : "off";
   }
   if (scenario === "disconnected" && prevState.state !== "on") {
