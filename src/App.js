@@ -28,8 +28,12 @@ import { Bulb, Button, Container, Grid } from "./components";
 
 // TODOS:
 // - Figure out why "connected" state freezes
-//
+// - Add explainer text
+// - Fix single action reducer
+// - Decouple code from framework. Turn useEffect into pure functions.
 
+// NOTES"
+// - Coupled code is harder to test.
 const initialState = [...Array(10)].reduce((grid, _, rowIndex, array) => {
   return grid.concat(
     array.map((_, itemIndex) => ({
@@ -110,13 +114,13 @@ const App = () => {
   }, [scenario]);
 
   React.useEffect(() => {
-    const toggleInterval = setInterval(() => {
-      console.log("dispatch");
-      dispatch({ type: "toggle", scenario: scenario });
-    }, 1000);
+    let toggleInterval;
 
-    if (running === false) {
-      clearInterval(toggleInterval);
+    if (running === true) {
+      toggleInterval = setInterval(() => {
+        console.log("dispatch");
+        dispatch({ type: "toggle", scenario: scenario });
+      }, 1000);
     }
 
     return () => clearInterval(toggleInterval);
