@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-const Button = styled.button`
+const Button = styled.button.attrs({ type: "button" })`
   background-color: white;
   border: 1px solid black;
   cursor: pointer;

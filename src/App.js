@@ -1,6 +1,4 @@
 import React from "react";
-// import { useMachine } from "@xstate/react";
-// import { Machine } from "xstate";
 
 import { Bulb, Button, Container, Grid } from "./components";
 
@@ -28,14 +26,9 @@ import { Bulb, Button, Container, Grid } from "./components";
 // Lights can turn on or off as long as there is a single light on.
 //
 
-// 100 lightbulbs
+// TODOS:
+// - Figure out why "connected" state freezes
 //
-//       // siblings: {
-//       //   up: [lineIndex - 1, index],
-//       //   right: [lineIndex, index + 1],
-//       //   bottom: [lineIndex + 1, index],
-//       //   left: [lineIndex, index - 1],
-//       // },
 
 const initialState = [...Array(10)].reduce((grid, _, rowIndex, array) => {
   return grid.concat(
@@ -48,15 +41,17 @@ const initialState = [...Array(10)].reduce((grid, _, rowIndex, array) => {
         bottom: [rowIndex + 1, itemIndex],
         left: [rowIndex, itemIndex - 1],
       },
-      state: Math.random() * 100 <= 50 ? "on" : "off",
+      state: Math.random() <= 0.5 ? "on" : "off",
     }))
   );
 }, []);
 
 function bulbToggler(prevState, scenario, array) {
+  const toggleChance = Math.random() <= 0.5 ? "on" : "off";
+
   const findSiblingStates = (direction) => {
-    const siblCoordinates =
-      (prevState.siblings[direction][0], prevState.siblings[direction][1]);
+    const siblCoordinates = (prevState.siblings[direction][0],
+    prevState.siblings[direction][1]);
     return array[siblCoordinates] && array[siblCoordinates].state;
   };
 
@@ -67,14 +62,17 @@ function bulbToggler(prevState, scenario, array) {
       findSiblingStates("left") === "on"
   );
 
-  if (scenario === "connected" && hasSiblingOn) {
-    return Math.random() * 100 <= 50 ? "on" : "off";
-  }
-  if (scenario === "disconnected" && prevState.state !== "on") {
-    return Math.random() * 100 <= 50 ? "on" : "off";
-  }
-  if (scenario === "random") {
-    return Math.random() * 100 <= 50 ? "on" : "off";
+  switch (scenario) {
+    case "connected":
+      if (hasSiblingOn) return toggleChance;
+      break;
+    case "disconnected":
+      if (prevState.state !== "on") return toggleChance;
+      break;
+    case "random":
+      return toggleChance;
+    default:
+      break;
   }
   return prevState.state;
 }
@@ -94,41 +92,62 @@ function reducer(state, action) {
 const App = () => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
   const [scenario, setScenario] = React.useState("connected");
+  const [running, setRunning] = React.useState(false);
+  const [lapse, setLapse] = React.useState(0);
 
-  // console.log(state);
+  React.useEffect(() => {
+    const allBulbsOn = state.every((item) => item.state === "on");
+
+    if (allBulbsOn) {
+      setRunning(false);
+    }
+  }, [running, scenario, state]);
+
+  React.useEffect(() => {
+    setLapse(Date.now());
+    dispatch({ type: "toggle", scenario: scenario });
+    setRunning(true);
+  }, [scenario]);
+
   React.useEffect(() => {
     const toggleInterval = setInterval(() => {
+      console.log("dispatch");
       dispatch({ type: "toggle", scenario: scenario });
     }, 1000);
+
+    if (running === false) {
+      clearInterval(toggleInterval);
+    }
+
     return () => clearInterval(toggleInterval);
-  }, [scenario]);
+  }, [running, scenario]);
+
+  const handleClick = (id) => {
+    setRunning(true);
+    setScenario(id);
+    if (scenario === id) {
+      setRunning(false);
+    }
+  };
 
   return (
     <Container>
       <Button.Container>
-        <button
-          type="button"
-          onClick={() => dispatch({ type: "toggle", scenario: "disconnected" })}
-        >
-          Dispatch
-        </button>
+        <span>{(Date.now() - lapse) / 1000}</span>
         <Button
-          type="button"
-          onClick={() => setScenario("connected")}
+          onClick={() => handleClick("connected")}
           active={scenario === "connected"}
         >
           Connected
         </Button>
         <Button
-          type="button"
-          onClick={() => setScenario("disconnected")}
+          onClick={() => handleClick("disconnected")}
           active={scenario === "disconnected"}
         >
           Disconnected
         </Button>
         <Button
-          type="button"
-          onClick={() => setScenario("random")}
+          onClick={() => handleClick("random")}
           active={scenario === "random"}
         >
           Random
