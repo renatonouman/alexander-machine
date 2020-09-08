@@ -34,98 +34,156 @@ import { Bulb, Button, Container, Grid } from "./components";
 
 // NOTES"
 // - Coupled code is harder to test.
+
+// const initialState = [...Array(10)].reduce((grid, _, rowIndex, array) => {
+//   return grid.concat(
+//     array.map((_, itemIndex) => ({
+//       coordinates: [rowIndex, itemIndex],
+//       key: `${rowIndex}${itemIndex}`,
+//       siblings: {
+//         up: [rowIndex - 1, itemIndex],
+//         right: [rowIndex, itemIndex + 1],
+//         bottom: [rowIndex + 1, itemIndex],
+//         left: [rowIndex, itemIndex - 1],
+//       },
+//       state: Math.random() <= 0.5 ? "on" : "off",
+//     }))
+//   );
+// }, []);
+
+//function bulbToggler(prevState, scenario, array) {
+//  const toggleChance = Math.random() <= 0.5 ? "on" : "off";
+//
+//  const findSiblingStates = (direction) => {
+//    const siblCoordinates = (prevState.siblings[direction][0],
+//    prevState.siblings[direction][1]);
+//    return array[siblCoordinates] && array[siblCoordinates].state;
+//  };
+//
+//  const hasSiblingOn = Boolean(
+//    findSiblingStates("up") === "on" ||
+//      findSiblingStates("right") === "on" ||
+//      findSiblingStates("bottom") === "on" ||
+//      findSiblingStates("left") === "on"
+//  );
+//
+//  switch (scenario) {
+//    case "connected":
+//      if (hasSiblingOn) return toggleChance;
+//      break;
+//    case "disconnected":
+//      if (prevState.state !== "on") return toggleChance;
+//      break;
+//    case "random":
+//      return toggleChance;
+//    default:
+//      break;
+//  }
+//  return prevState.state;
+//}
+//
+
+function bulbToggler(...args) {
+  return () => {
+    console.log(args);
+    //const toggleChance = Math.random() <= 0.5 ? "on" : "off";
+
+    //const findSiblingStates = (direction) => {
+    //  const siblCoordinates = (prevState.siblings[direction][0],
+    //  prevState.siblings[direction][1]);
+    //  return array[siblCoordinates] && array[siblCoordinates].state;
+    //};
+
+    //const hasSiblingOn = Boolean(
+    //  findSiblingStates("up") === "on" ||
+    //    findSiblingStates("right") === "on" ||
+    //    findSiblingStates("bottom") === "on" ||
+    //    findSiblingStates("left") === "on"
+    //);
+
+    //switch (scenario) {
+    //  case "connected":
+    //    if (hasSiblingOn) return toggleChance;
+    //    break;
+    //  case "disconnected":
+    //    if (prevState.state !== "on") return toggleChance;
+    //    break;
+    //  case "random":
+    //    return toggleChance;
+    //  default:
+    //    break;
+    //}
+    //return prevState.state;
+  };
+}
+
+function defineSiblings(rowIndex, itemIndex) {
+  return {
+    up: [rowIndex - 1, itemIndex],
+    right: [rowIndex, itemIndex + 1],
+    bottom: [rowIndex + 1, itemIndex],
+    left: [rowIndex, itemIndex - 1],
+  };
+}
+
 const initialState = [...Array(10)].reduce((grid, _, rowIndex, array) => {
   return grid.concat(
     array.map((_, itemIndex) => ({
       coordinates: [rowIndex, itemIndex],
-      key: `${rowIndex}${itemIndex}`,
-      siblings: {
-        up: [rowIndex - 1, itemIndex],
-        right: [rowIndex, itemIndex + 1],
-        bottom: [rowIndex + 1, itemIndex],
-        left: [rowIndex, itemIndex - 1],
-      },
+      siblings: defineSiblings(rowIndex, itemIndex),
       state: Math.random() <= 0.5 ? "on" : "off",
     }))
   );
 }, []);
 
-function bulbToggler(prevState, scenario, array) {
-  const toggleChance = Math.random() <= 0.5 ? "on" : "off";
-
-  const findSiblingStates = (direction) => {
-    const siblCoordinates = (prevState.siblings[direction][0],
-    prevState.siblings[direction][1]);
-    return array[siblCoordinates] && array[siblCoordinates].state;
-  };
-
-  const hasSiblingOn = Boolean(
-    findSiblingStates("up") === "on" ||
-      findSiblingStates("right") === "on" ||
-      findSiblingStates("bottom") === "on" ||
-      findSiblingStates("left") === "on"
-  );
-
-  switch (scenario) {
-    case "connected":
-      if (hasSiblingOn) return toggleChance;
-      break;
-    case "disconnected":
-      if (prevState.state !== "on") return toggleChance;
-      break;
-    case "random":
-      return toggleChance;
-    default:
-      break;
-  }
-  return prevState.state;
-}
-
-function reducer(state, action) {
-  if (action.type === "toggle") {
-    return state.reduce((newState, value, _, array) => {
-      return newState.concat({
-        ...value,
-        state: bulbToggler(value, action.scenario, array),
-      });
-    }, []);
-  }
-  return state;
-}
-
-const App = () => {
-  const [state, dispatch] = React.useReducer(reducer, initialState);
-  const [scenario, setScenario] = React.useState("connected");
-  const [running, setRunning] = React.useState(false);
-  const [lapse, setLapse] = React.useState(0);
-
-  React.useEffect(() => {
-    const allBulbsOn = state.every((item) => item.state === "on");
-
-    if (allBulbsOn) {
-      setRunning(false);
-    }
-  }, [running, scenario, state]);
-
-  React.useEffect(() => {
-    setLapse(Date.now());
-    dispatch({ type: "toggle", scenario: scenario });
-    setRunning(true);
-  }, [scenario]);
+function useGrid(scenario, running, toggleFunction) {
+  const [grid, setGrid] = React.useState(initialState);
 
   React.useEffect(() => {
     let toggleInterval;
 
-    if (running === true) {
+    if (running) {
       toggleInterval = setInterval(() => {
-        console.log("dispatch");
-        dispatch({ type: "toggle", scenario: scenario });
+        setGrid(
+          [...Array(10)].reduce((grid, _, rowIndex, array) => {
+            return grid.concat(
+              array.map((_, itemIndex) => ({
+                coordinates: [rowIndex, itemIndex],
+                siblings: defineSiblings(rowIndex, itemIndex),
+                state: toggleFunction(),
+              }))
+            );
+          }, [])
+        );
       }, 1000);
     }
-
     return () => clearInterval(toggleInterval);
-  }, [running, scenario]);
+  }, [running, scenario, toggleFunction]);
 
+  return grid;
+}
+
+const App = () => {
+  const [scenario, setScenario] = React.useState("connected");
+  const [running, setRunning] = React.useState(false);
+  const grid = useGrid(scenario, running, bulbToggler(scenario));
+
+  // const [lapse, setLapse] = React.useState(0);
+
+  //  React.useEffect(() => {
+  //    const allBulbsOn = state.every((item) => item.state === "on");
+  //
+  //    if (allBulbsOn) {
+  //      setRunning(false);
+  //    }
+  //  }, [running, scenario, state]);
+  //
+  //  React.useEffect(() => {
+  //    setLapse(Date.now());
+  //    dispatch({ type: "toggle", scenario: scenario });
+  //    setRunning(true);
+  //  }, [scenario]);
+  //
   const handleClick = (id) => {
     setRunning(true);
     setScenario(id);
@@ -137,28 +195,15 @@ const App = () => {
   return (
     <Container>
       <Button.Container>
-        <span>{(Date.now() - lapse) / 1000}</span>
-        <Button
-          onClick={() => handleClick("connected")}
-          active={scenario === "connected"}
-        >
-          Connected
-        </Button>
-        <Button
-          onClick={() => handleClick("disconnected")}
-          active={scenario === "disconnected"}
-        >
+        <button onClick={() => setRunning(!running)}>Run</button>
+        <Button onClick={() => handleClick("connected")}>Connected</Button>
+        <Button onClick={() => handleClick("disconnected")}>
           Disconnected
         </Button>
-        <Button
-          onClick={() => handleClick("random")}
-          active={scenario === "random"}
-        >
-          Random
-        </Button>
+        <Button onClick={() => handleClick("random")}>Random</Button>
       </Button.Container>
       <Grid>
-        {state.map((bulb) => (
+        {grid.map((bulb) => (
           <Bulb {...bulb} />
         ))}
       </Grid>
