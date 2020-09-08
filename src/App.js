@@ -83,38 +83,36 @@ import { Bulb, Button, Container, Grid } from "./components";
 //}
 //
 
-function bulbToggler(...args) {
-  return () => {
-    console.log(args);
-    //const toggleChance = Math.random() <= 0.5 ? "on" : "off";
+function bulbToggler(prevState, scenario, array) {
+  console.log("hit");
+  const toggleChance = Math.random() <= 0.5 ? "on" : "off";
 
-    //const findSiblingStates = (direction) => {
-    //  const siblCoordinates = (prevState.siblings[direction][0],
-    //  prevState.siblings[direction][1]);
-    //  return array[siblCoordinates] && array[siblCoordinates].state;
-    //};
-
-    //const hasSiblingOn = Boolean(
-    //  findSiblingStates("up") === "on" ||
-    //    findSiblingStates("right") === "on" ||
-    //    findSiblingStates("bottom") === "on" ||
-    //    findSiblingStates("left") === "on"
-    //);
-
-    //switch (scenario) {
-    //  case "connected":
-    //    if (hasSiblingOn) return toggleChance;
-    //    break;
-    //  case "disconnected":
-    //    if (prevState.state !== "on") return toggleChance;
-    //    break;
-    //  case "random":
-    //    return toggleChance;
-    //  default:
-    //    break;
-    //}
-    //return prevState.state;
+  const findSiblingStates = (direction) => {
+    const siblCoordinates = (prevState.siblings[direction][0],
+    prevState.siblings[direction][1]);
+    return array[siblCoordinates] && array[siblCoordinates].state;
   };
+
+  const hasSiblingOn = Boolean(
+    findSiblingStates("up") === "on" ||
+      findSiblingStates("right") === "on" ||
+      findSiblingStates("bottom") === "on" ||
+      findSiblingStates("left") === "on"
+  );
+
+  switch (scenario) {
+    case "connected":
+      if (hasSiblingOn) return toggleChance;
+      break;
+    case "disconnected":
+      if (prevState.state !== "on") return toggleChance;
+      break;
+    case "random":
+      return toggleChance;
+    default:
+      break;
+  }
+  return prevState.state;
 }
 
 function defineSiblings(rowIndex, itemIndex) {
@@ -145,20 +143,16 @@ function useGrid(scenario, running, toggleFunction) {
     if (running) {
       toggleInterval = setInterval(() => {
         setGrid(
-          [...Array(10)].reduce((grid, _, rowIndex, array) => {
-            return grid.concat(
-              array.map((_, itemIndex) => ({
-                coordinates: [rowIndex, itemIndex],
-                siblings: defineSiblings(rowIndex, itemIndex),
-                state: toggleFunction(),
-              }))
-            );
-          }, [])
+          grid.map((bulb) => ({
+            ...bulb,
+            state: toggleFunction(bulb, scenario, grid),
+          }))
         );
       }, 1000);
     }
+
     return () => clearInterval(toggleInterval);
-  }, [running, scenario, toggleFunction]);
+  }, [grid, running, scenario, toggleFunction]);
 
   return grid;
 }
@@ -166,7 +160,7 @@ function useGrid(scenario, running, toggleFunction) {
 const App = () => {
   const [scenario, setScenario] = React.useState("connected");
   const [running, setRunning] = React.useState(false);
-  const grid = useGrid(scenario, running, bulbToggler(scenario));
+  const grid = useGrid(scenario, running, bulbToggler);
 
   // const [lapse, setLapse] = React.useState(0);
 
