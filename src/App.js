@@ -1,6 +1,9 @@
 import React from "react";
 
 import { Bulb, Button, Container, Grid } from "./components";
+import useGrid from "./hooks/useGrid";
+import initialState from "./helpers/initialState";
+import bulbToggler from "./helpers/bulbToggler";
 
 // base ensemble
 // -------------
@@ -33,101 +36,16 @@ import { Bulb, Button, Container, Grid } from "./components";
 
 // NOTES"
 // - Coupled code is harder to test.
-
-function checkArrayEquality(arr1, arr2) {
-  return arr1.every((value, index) => value === arr2[index]);
-}
-
-function bulbToggler(prevState, scenario, array) {
-  const toggleChance = Math.random() <= 0.5 ? "on" : "off";
-
-  const findSiblingStateOn = (bulb, array) => {
-    const siblings = array.filter(
-      (item) =>
-        checkArrayEquality(item.coordinates, bulb.siblings.up) ||
-        checkArrayEquality(item.coordinates, bulb.siblings.right) ||
-        checkArrayEquality(item.coordinates, bulb.siblings.bottom) ||
-        checkArrayEquality(item.coordinates, bulb.siblings.left)
-    );
-
-    const isSiblingOn = siblings.some((sibling) => sibling.state === "on");
-
-    return isSiblingOn;
-  };
-
-  switch (scenario) {
-    case "connected":
-      if (findSiblingStateOn(prevState, array)) return toggleChance;
-      break;
-    case "disconnected":
-      if (prevState.state !== "on") return toggleChance;
-      break;
-    case "random":
-      return toggleChance;
-    default:
-      break;
-  }
-  return prevState.state;
-}
-
-function defineSiblings(rowIndex, itemIndex) {
-  return {
-    up: [rowIndex - 1, itemIndex],
-    right: [rowIndex, itemIndex + 1],
-    bottom: [rowIndex + 1, itemIndex],
-    left: [rowIndex, itemIndex - 1],
-  };
-}
-
-const initialState = [...Array(10)].reduce((grid, _, rowIndex, array) => {
-  return grid.concat(
-    array.map((_, itemIndex) => ({
-      coordinates: [rowIndex, itemIndex],
-      key: `${rowIndex}${itemIndex}`,
-      siblings: defineSiblings(rowIndex, itemIndex),
-      state: Math.random() <= 0.5 ? "on" : "off",
-    }))
-  );
-}, []);
-
-function useGrid(scenario, running, toggleFunction) {
-  const [grid, setGrid] = React.useState(initialState);
-
-  React.useEffect(() => {
-    let toggleInterval;
-
-    if (running) {
-      toggleInterval = setInterval(() => {
-        setGrid(
-          grid.map((bulb) => ({
-            ...bulb,
-            state: toggleFunction(bulb, scenario, grid),
-          }))
-        );
-      }, 100);
-    }
-
-    return () => clearInterval(toggleInterval);
-  }, [grid, running, scenario, toggleFunction]);
-
-  return grid;
-}
+//
+//
 
 const App = () => {
   const [scenario, setScenario] = React.useState("connected");
   const [running, setRunning] = React.useState(false);
-  const grid = useGrid(scenario, running, bulbToggler);
+  const grid = useGrid(scenario, running, bulbToggler, initialState);
 
   // const [lapse, setLapse] = React.useState(0);
 
-  //  React.useEffect(() => {
-  //    const allBulbsOn = state.every((item) => item.state === "on");
-  //
-  //    if (allBulbsOn) {
-  //      setRunning(false);
-  //    }
-  //  }, [running, scenario, state]);
-  //
   //  React.useEffect(() => {
   //    setLapse(Date.now());
   //    dispatch({ type: "toggle", scenario: scenario });
@@ -137,7 +55,7 @@ const App = () => {
   const handleClick = (id) => {
     setRunning(true);
     setScenario(id);
-    if (scenario === id) {
+    if (scenario === id && running) {
       setRunning(false);
     }
   };
@@ -146,11 +64,24 @@ const App = () => {
     <Container>
       <Button.Container>
         <button onClick={() => setRunning(!running)}>Run</button>
-        <Button onClick={() => handleClick("connected")}>Connected</Button>
-        <Button onClick={() => handleClick("disconnected")}>
+        <Button
+          onClick={() => handleClick("connected")}
+          active={scenario === "connected"}
+        >
+          Connected
+        </Button>
+        <Button
+          onClick={() => handleClick("disconnected")}
+          active={scenario === "disconnected"}
+        >
           Disconnected
         </Button>
-        <Button onClick={() => handleClick("random")}>Random</Button>
+        <Button
+          onClick={() => handleClick("random")}
+          active={scenario === "random"}
+        >
+          Random
+        </Button>
       </Button.Container>
       <Grid>
         {grid.map((bulb) => (
