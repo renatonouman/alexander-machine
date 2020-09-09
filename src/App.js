@@ -27,7 +27,6 @@ import { Bulb, Button, Container, Grid } from "./components";
 //
 
 // TODOS:
-// - Figure out why "connected" state freezes
 // - Add explainer text
 // - Fix single action reducer
 // - Decouple code from framework. Turn useEffect into pure functions.
@@ -35,74 +34,30 @@ import { Bulb, Button, Container, Grid } from "./components";
 // NOTES"
 // - Coupled code is harder to test.
 
-// const initialState = [...Array(10)].reduce((grid, _, rowIndex, array) => {
-//   return grid.concat(
-//     array.map((_, itemIndex) => ({
-//       coordinates: [rowIndex, itemIndex],
-//       key: `${rowIndex}${itemIndex}`,
-//       siblings: {
-//         up: [rowIndex - 1, itemIndex],
-//         right: [rowIndex, itemIndex + 1],
-//         bottom: [rowIndex + 1, itemIndex],
-//         left: [rowIndex, itemIndex - 1],
-//       },
-//       state: Math.random() <= 0.5 ? "on" : "off",
-//     }))
-//   );
-// }, []);
-
-//function bulbToggler(prevState, scenario, array) {
-//  const toggleChance = Math.random() <= 0.5 ? "on" : "off";
-//
-//  const findSiblingStates = (direction) => {
-//    const siblCoordinates = (prevState.siblings[direction][0],
-//    prevState.siblings[direction][1]);
-//    return array[siblCoordinates] && array[siblCoordinates].state;
-//  };
-//
-//  const hasSiblingOn = Boolean(
-//    findSiblingStates("up") === "on" ||
-//      findSiblingStates("right") === "on" ||
-//      findSiblingStates("bottom") === "on" ||
-//      findSiblingStates("left") === "on"
-//  );
-//
-//  switch (scenario) {
-//    case "connected":
-//      if (hasSiblingOn) return toggleChance;
-//      break;
-//    case "disconnected":
-//      if (prevState.state !== "on") return toggleChance;
-//      break;
-//    case "random":
-//      return toggleChance;
-//    default:
-//      break;
-//  }
-//  return prevState.state;
-//}
-//
+function checkArrayEquality(arr1, arr2) {
+  return arr1.every((value, index) => value === arr2[index]);
+}
 
 function bulbToggler(prevState, scenario, array) {
-  console.log("hit");
   const toggleChance = Math.random() <= 0.5 ? "on" : "off";
 
-  const findSiblingStates = (direction) => {
-    const siblCoordinates = (prevState.siblings[direction][0],
-    prevState.siblings[direction][1]);
-    return array[siblCoordinates] && array[siblCoordinates].state;
-  };
+  const findSiblingStateOn = (bulb, array) => {
+    const siblings = array.filter(
+      (item) =>
+        checkArrayEquality(item.coordinates, bulb.siblings.up) ||
+        checkArrayEquality(item.coordinates, bulb.siblings.right) ||
+        checkArrayEquality(item.coordinates, bulb.siblings.bottom) ||
+        checkArrayEquality(item.coordinates, bulb.siblings.left)
+    );
 
-  const hasSiblingOn = Boolean(
-    findSiblingStates("up") === "on" ||
-      findSiblingStates("right") === "on" ||
-      findSiblingStates("bottom") === "on" ||
-      findSiblingStates("left") === "on"
-  );
+    const isSiblingOn = siblings.some((sibling) => sibling.state === "on");
+
+    return isSiblingOn;
+  };
 
   switch (scenario) {
     case "connected":
-      if (hasSiblingOn) return toggleChance;
+      if (findSiblingStateOn(prevState, array)) return toggleChance;
       break;
     case "disconnected":
       if (prevState.state !== "on") return toggleChance;
@@ -128,6 +83,7 @@ const initialState = [...Array(10)].reduce((grid, _, rowIndex, array) => {
   return grid.concat(
     array.map((_, itemIndex) => ({
       coordinates: [rowIndex, itemIndex],
+      key: `${rowIndex}${itemIndex}`,
       siblings: defineSiblings(rowIndex, itemIndex),
       state: Math.random() <= 0.5 ? "on" : "off",
     }))
@@ -148,7 +104,7 @@ function useGrid(scenario, running, toggleFunction) {
             state: toggleFunction(bulb, scenario, grid),
           }))
         );
-      }, 1000);
+      }, 100);
     }
 
     return () => clearInterval(toggleInterval);
