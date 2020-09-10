@@ -1,17 +1,11 @@
-import React from "react";
+import React from 'react';
 
-import { Bulb, Button, Container, Grid, Header, Paragraph } from "./components";
-import DESCRIPTION from "./constants/DESCRIPTION";
-import useGrid from "./hooks/useGrid";
-import initialState from "./helpers/initialState";
-import bulbToggler from "./helpers/bulbToggler";
+import { Button, Container, Grid, Header, Paragraph } from './components';
+import DESCRIPTION from './constants/DESCRIPTION';
 
 const App = () => {
-  const [scenario, setScenario] = React.useState("");
+  const [scenario, setScenario] = React.useState('');
   const [running, setRunning] = React.useState(false);
-  const grid = useGrid(scenario, running, bulbToggler, initialState);
-
-  const scenarios = ["connected", "disconnected", "random"];
 
   const handleClick = (id) => {
     setRunning(true);
@@ -26,21 +20,18 @@ const App = () => {
       <Header>
         <Paragraph>{DESCRIPTION}</Paragraph>
         <Button.Container>
-          {scenarios.map((each) => (
-            <Button
-              key={each}
-              onClick={() => handleClick(each)}
-              active={scenario === each}
-              children={each}
-            />
-          ))}
+          <Button key='connected' onClick={() => handleClick('connected')} active={scenario === 'connected'}>
+            connected
+          </Button>
+          <Button key='disconnected' onClick={() => handleClick('disconnected')} active={scenario === 'disconnected'}>
+            disconnected
+          </Button>
+          <Button key='random' onClick={() => handleClick('random')} active={scenario === 'random'}>
+            random
+          </Button>
         </Button.Container>
       </Header>
-      <Grid>
-        {grid.map((bulb) => (
-          <Bulb {...bulb} />
-        ))}
-      </Grid>
+      <Grid scenario={scenario} running={running} />
     </Container>
   );
 };
