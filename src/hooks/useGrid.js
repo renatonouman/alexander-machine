@@ -19,7 +19,7 @@ function useGrid(scenario, running, toggleFunction, initialState) {
             state: toggleFunction(bulb, scenario, grid),
           }))
         );
-      }, 100);
+      }, 1000);
     }
 
     return () => clearInterval(toggleInterval);

@@ -24,6 +24,7 @@ const App = () => {
   return (
     <Container>
       <Header>
+        <h1>alexander-machine.</h1>
         <Paragraph>{DESCRIPTION}</Paragraph>
         <Button.Container>
           {scenarios.map((each) => (
