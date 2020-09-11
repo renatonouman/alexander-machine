@@ -1,51 +1,24 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 const initState = [...Array(10)].map((row = [...Array(10)]) =>
   row.map(() => Math.random() <= 0.5)
 );
-console.log(initState);
 
-//const initialState = [...Array(10)].reduce((grid, _, rowIndex, array) => {
-//  return grid.concat(
-//    array.map((_, itemIndex) => ({
-//      coordinates: [rowIndex, itemIndex],
-//      key: `${rowIndex}${itemIndex}`,
-//      siblings: {
-//        up: [rowIndex - 1, itemIndex],
-//        right: [rowIndex, itemIndex + 1],
-//        bottom: [rowIndex + 1, itemIndex],
-//        left: [rowIndex, itemIndex - 1],
-//      },
-//      state: Math.random() <= 0.5 ? "on" : "off",
-//    }))
-//  );
-//}, []);
+const findSiblingOn = (array, [y, x]) => {
+  const above = array[y - 1] && array[y - 1][x];
+  const right = array[y][x + 1];
+  const below = array[y + 1] && array[y + 1][x];
+  const left = array[y] && array[y][x - 1];
 
-function checkArrayEquality(arr1, arr2) {
-  return arr1.every((value, index) => value === arr2[index]);
-}
-
-const findSiblingStateOn = (bulb, array) => {
-  const siblings = array.filter(
-    (item) =>
-      checkArrayEquality(item.coordinates, bulb.siblings.up) ||
-      checkArrayEquality(item.coordinates, bulb.siblings.right) ||
-      checkArrayEquality(item.coordinates, bulb.siblings.bottom) ||
-      checkArrayEquality(item.coordinates, bulb.siblings.left)
-  );
-
-  const isSiblingOn = siblings.some((sibling) => sibling.state === "on");
-
-  return isSiblingOn;
+  return above || right || below || left;
 };
 
-function bulbToggler(prevBulb, scenario, array) {
+function bulbToggler(prevBulb, scenario, array, coordinates) {
   const toggleChance = Math.random() <= 0.5;
 
-  console.log("hit");
   switch (scenario) {
     case "connected":
-      if (findSiblingStateOn(prevBulb, array)) return toggleChance;
+      if (findSiblingOn(array, coordinates)) return toggleChance;
       break;
     case "disconnected":
       if (!prevBulb) return toggleChance;
@@ -65,14 +38,16 @@ function useGrid(scenario, running) {
     let allBulbsOn = grid.flat().every((bulb) => bulb === true);
     let toggleInterval;
 
+    const gridSetter = () => {
+      return grid.map((row, y) =>
+        row.map((bulb, x) => (bulb = bulbToggler(bulb, scenario, grid, [y, x])))
+      );
+    };
+
     if (running && !allBulbsOn) {
       toggleInterval = setInterval(() => {
-        setGrid(
-          grid.map((row) =>
-            row.map((bulb) => (bulb = bulbToggler(bulb, scenario, grid)))
-          )
-        );
-      }, 100);
+        setGrid(gridSetter());
+      }, 1000);
     }
 
     return () => clearInterval(toggleInterval);
