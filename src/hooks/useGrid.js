@@ -47,7 +47,7 @@ function useGrid(scenario, running) {
     if (running && !allBulbsOn) {
       toggleInterval = setInterval(() => {
         setGrid(gridSetter());
-      }, 100);
+      }, 1000);
     }
 
     return () => clearInterval(toggleInterval);
