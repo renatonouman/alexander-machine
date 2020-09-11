@@ -16,19 +16,15 @@ const findSiblingOn = (array, [y, x]) => {
 function bulbToggler(prevBulb, scenario, array, coordinates) {
   const toggleChance = Math.random() <= 0.5;
 
-  switch (scenario) {
-    case "connected":
-      if (findSiblingOn(array, coordinates)) return toggleChance;
-      break;
-    case "disconnected":
-      if (!prevBulb) return toggleChance;
-      break;
-    case "random":
-      return toggleChance;
-    default:
-      break;
-  }
-  return prevBulb;
+  const connectedCondition =
+    scenario === "connected" && findSiblingOn(array, coordinates);
+  const disconnectedCondition = scenario === "disconnected" && !prevBulb;
+  const randomCondition = scenario === "random";
+
+  if (connectedCondition) return toggleChance;
+  if (disconnectedCondition) return toggleChance;
+  if (randomCondition) return toggleChance;
+  else return prevBulb;
 }
 
 function useGrid(scenario, running) {
