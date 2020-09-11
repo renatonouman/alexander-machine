@@ -31,9 +31,14 @@ function useGrid(scenario, running) {
   const [grid, setGrid] = useState(initState);
 
   useEffect(() => {
+    setGrid(initState);
+  }, [scenario]);
+
+  useEffect(() => {
     let allBulbsOn = grid.flat().every((bulb) => bulb === true);
     let toggleInterval;
 
+    console.log(allBulbsOn);
     const gridSetter = () => {
       return grid.map((row, y) =>
         row.map((bulb, x) => (bulb = bulbToggler(bulb, scenario, grid, [y, x])))
@@ -43,7 +48,7 @@ function useGrid(scenario, running) {
     if (running && !allBulbsOn) {
       toggleInterval = setInterval(() => {
         setGrid(gridSetter());
-      }, 1000);
+      }, 100);
     }
 
     return () => clearInterval(toggleInterval);
