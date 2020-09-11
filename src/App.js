@@ -1,13 +1,10 @@
 import React from "react";
 
-import { Button, Container, Grid, Header, Paragraph } from "./components";
-import DESCRIPTION from "./constants/DESCRIPTION";
+import { Container, Grid, Header } from "./components";
 
 const App = () => {
   const [scenario, setScenario] = React.useState("");
   const [running, setRunning] = React.useState(false);
-
-  const scenarios = ["connected", "disconnected", "random"];
 
   const handleClick = (id) => {
     setRunning(true);
@@ -19,20 +16,7 @@ const App = () => {
 
   return (
     <Container>
-      <Header>
-        <h1>alexander-machine.</h1>
-        <Paragraph>{DESCRIPTION}</Paragraph>
-        <Button.Container>
-          {scenarios.map((each) => (
-            <Button
-              key={each}
-              onClick={() => handleClick(each)}
-              active={scenario === each}
-              children={each}
-            />
-          ))}
-        </Button.Container>
-      </Header>
+      <Header scenario={scenario} handleClick={handleClick} />
       <Grid scenario={scenario} running={running} />
     </Container>
   );
