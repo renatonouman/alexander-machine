@@ -18,9 +18,9 @@ function Grid({ scenario, running }) {
 
   return (
     <GridWrapper>
-      {grid.map((bulb) => (
-        <Bulb {...bulb} />
-      ))}
+      {grid.map((row, y) =>
+        row.map((bulb, x) => <Bulb $on={bulb} key={`${x}${y}`} />)
+      )}
     </GridWrapper>
   );
 }

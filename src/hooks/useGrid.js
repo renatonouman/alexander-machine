@@ -1,20 +1,25 @@
 import { useState, useEffect, useRef } from "react";
 
-const initialState = [...Array(10)].reduce((grid, _, rowIndex, array) => {
-  return grid.concat(
-    array.map((_, itemIndex) => ({
-      coordinates: [rowIndex, itemIndex],
-      key: `${rowIndex}${itemIndex}`,
-      siblings: {
-        up: [rowIndex - 1, itemIndex],
-        right: [rowIndex, itemIndex + 1],
-        bottom: [rowIndex + 1, itemIndex],
-        left: [rowIndex, itemIndex - 1],
-      },
-      state: Math.random() <= 0.5 ? "on" : "off",
-    }))
-  );
-}, []);
+const initState = [...Array(10)].map((row = [...Array(10)]) =>
+  row.map(() => Math.random() <= 0.5)
+);
+console.log(initState);
+
+//const initialState = [...Array(10)].reduce((grid, _, rowIndex, array) => {
+//  return grid.concat(
+//    array.map((_, itemIndex) => ({
+//      coordinates: [rowIndex, itemIndex],
+//      key: `${rowIndex}${itemIndex}`,
+//      siblings: {
+//        up: [rowIndex - 1, itemIndex],
+//        right: [rowIndex, itemIndex + 1],
+//        bottom: [rowIndex + 1, itemIndex],
+//        left: [rowIndex, itemIndex - 1],
+//      },
+//      state: Math.random() <= 0.5 ? "on" : "off",
+//    }))
+//  );
+//}, []);
 
 function checkArrayEquality(arr1, arr2) {
   return arr1.every((value, index) => value === arr2[index]);
@@ -34,47 +39,44 @@ const findSiblingStateOn = (bulb, array) => {
   return isSiblingOn;
 };
 
-function bulbToggler(prevState, scenario, array) {
-  const toggleChance = Math.random() <= 0.5 ? "on" : "off";
+function bulbToggler(prevBulb, scenario, array) {
+  const toggleChance = Math.random() <= 0.5;
 
+  console.log("hit");
   switch (scenario) {
     case "connected":
-      if (findSiblingStateOn(prevState, array)) return toggleChance;
+      if (findSiblingStateOn(prevBulb, array)) return toggleChance;
       break;
     case "disconnected":
-      if (prevState.state !== "on") return toggleChance;
+      if (!prevBulb) return toggleChance;
       break;
     case "random":
       return toggleChance;
     default:
       break;
   }
-  return prevState.state;
+  return prevBulb;
 }
+
 function useGrid(scenario, running) {
-  const [grid, setGrid] = useState(initialState);
-  let allBulbsOn = useRef(grid.every((bulb) => bulb.state === "on"));
+  const [grid, setGrid] = useState(initState);
 
   useEffect(() => {
-    allBulbsOn.current = false;
-  }, [scenario]);
-
-  useEffect(() => {
+    let allBulbsOn = grid.flat().every((bulb) => bulb === true);
     let toggleInterval;
 
-    if (running && !allBulbsOn.current) {
+    if (running && !allBulbsOn) {
       toggleInterval = setInterval(() => {
         setGrid(
-          grid.map((bulb) => ({
-            ...bulb,
-            state: bulbToggler(bulb, scenario, grid),
-          }))
+          grid.map((row) =>
+            row.map((bulb) => (bulb = bulbToggler(bulb, scenario, grid)))
+          )
         );
-      }, 1000);
+      }, 100);
     }
 
     return () => clearInterval(toggleInterval);
-  }, [allBulbsOn, grid, running, scenario]);
+  }, [grid, running, scenario]);
 
   return grid;
 }
