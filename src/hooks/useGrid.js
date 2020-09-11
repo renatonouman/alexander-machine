@@ -1,9 +1,5 @@
 import { useState, useEffect } from "react";
 
-const initState = [...Array(10)].map((row = [...Array(10)]) =>
-  row.map(() => Math.random() <= 0.5)
-);
-
 const findSiblingOn = (array, [y, x]) => {
   const above = array[y - 1] && array[y - 1][x];
   const right = array[y][x + 1];
@@ -26,6 +22,10 @@ function bulbToggler(prevBulb, scenario, array, coordinates) {
   if (randomCondition) return toggleChance;
   else return prevBulb;
 }
+
+const initState = [...Array(10)].map((row = [...Array(10)]) =>
+  row.map(() => Math.random() <= 0.5)
+);
 
 function useGrid(scenario, running) {
   const [grid, setGrid] = useState(initState);
