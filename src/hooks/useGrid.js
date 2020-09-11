@@ -38,7 +38,6 @@ function useGrid(scenario, running) {
     let allBulbsOn = grid.flat().every((bulb) => bulb === true);
     let toggleInterval;
 
-    console.log(allBulbsOn);
     const gridSetter = () => {
       return grid.map((row, y) =>
         row.map((bulb, x) => (bulb = bulbToggler(bulb, scenario, grid, [y, x])))
