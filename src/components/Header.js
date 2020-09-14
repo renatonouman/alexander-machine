@@ -21,7 +21,7 @@ const Header = ({ scenario, handleClick }) => (
   <HeaderWrapper>
     <Logo />
     <h3>alexander-machine.</h3>
-    <Paragraph>{DESCRIPTION}</Paragraph>
+    <Paragraph dangerouslySetInnerHTML={{ __html: DESCRIPTION }} />
     <Button.Container>
       <Button
         onClick={() => handleClick("connected")}

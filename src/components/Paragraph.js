@@ -1,8 +1,9 @@
 import styled from "styled-components";
 
 const Paragraph = styled.p`
-  max-width: 600px;
-  margin-bottom: 120px;
+  max-width: 620px;
+  margin-bottom: 72px;
+  font-size: 16px;
 `;
 
 export default Paragraph;
