@@ -1,6 +1,4 @@
-![Alexander Machine Logo](https://github.com/renatonouman/alexander-machine/blob/master/src/assets/am-logo.svg)
-
-
+![Alexander Machine Logo](https://github.com/renatonouman/alexander-machine/blob/master/src/assets/am-logo-small.svg)
 
 In his book _Notes on the synthesis of form_, Christopher Alexander describes a thought experiment to illustrate how a system might achieve a state of equilibrium.
 The system consists of a 100 lightbulbs. Each bulb has two possible states, on and off, and a 50-50 chance of changing state in the next second. The experiment follows on to describe a few different scenarios in which the bulbs might change state:
