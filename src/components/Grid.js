@@ -5,12 +5,11 @@ import useGrid from "../hooks/useGrid";
 import { Bulb } from "../components";
 
 const GridWrapper = styled.div`
-  margin: 0 auto;
   display: grid;
   grid-gap: 30px;
   grid-template-columns: repeat(10, 36px);
   grid-template-rows: repeat(10, 36px);
-  justify-content: center;
+  justify-content: flex-start;
 `;
 
 function Grid({ scenario, running }) {
