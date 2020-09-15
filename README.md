@@ -8,3 +8,7 @@ The system consists of a 100 lightbulbs. Each bulb has two possible states, on a
 2. "On the one hand, suppose there are no interconnections between lights at all. In this case there is nothing to prevent each light’s staying off for good, as soon as it goes off. The average time it takes for all the lights to go off is therefore only a little greater than the average time it takes for a single light to go off […]."
 
 3. "On the other hand, imagine such rich interconnections between lights that any one light still on quickly rouses all others from the off state and puts them on again. The only way in which this system can reach adaptation is by the pure chance that all 100 happen to go off at the same moment. The average time which must elapse before this happens will be of the order of 2100 seconds, or 1022 years."
+
+---
+
+This project is a personal coding exercise and the published version can be checked [here.](https://heuristic-montalcini-322406.netlify.app/)
