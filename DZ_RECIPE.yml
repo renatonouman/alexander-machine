@@ -1,0 +1,11 @@
+dev:
+  commands:
+  - command: yarn install --frozen-lockfile
+    directory: alexander-machine
+    name: install cmd
+  name: ""
+  packages:
+  - nixpkgs.nodePackages.yarn
+  - nixpkgs.nodejs_18
+  repos:
+  - https://github.com/renatonouman/alexander-machine
